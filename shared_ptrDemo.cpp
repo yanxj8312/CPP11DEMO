@@ -21,6 +21,35 @@ void test()
 }
 
 
+//循环引用场景
+
+struct A;
+struct B;
+
+struct A
+{
+  std::shared_ptr<B> bptr;
+  ~A(){cout<<"A is deleted"<<endl;}
+};
+
+struct B
+{
+  std::shared_ptr<A> aptr;
+  ~B(){cout<<"B is deleted"<<endl;}
+};
+
+//该测试下a和b都不会被删除，存在内存泄漏，循环引用导致ap和bp的引用计数为2，离开作用域之后引用计数为1，并不会为0
+void TestPtr()
+{
+  {
+    std::shared_ptr<A> ap(new A);
+    std::shared_ptr<B> bp(new B);
+    ap->bptr = bp;
+    bp->aptr = ap;
+  }
+}
+
+
 int main(int arg,char** argv)
 {
   test();
